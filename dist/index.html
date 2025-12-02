@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tauri Todo App</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f9;
+            --text-color: #333;
+            --header-color: #2c3e50;
+            --card-bg: white;
+            --input-bg: white;
+            --border-color: #ddd;
+            --meta-color: #666;
+            --completed-color: #888;
+            --primary-btn-bg: #3498db;
+            --primary-btn-hover: #2980b9;
+            --delete-btn-bg: #e74c3c;
+            --delete-btn-hover: #c0392b;
+            --shadow: rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --header-color: #ecf0f1;
+            --card-bg: #2d2d2d;
+            --input-bg: #3d3d3d;
+            --border-color: #444;
+            --meta-color: #aaa;
+            --completed-color: #666;
+            --primary-btn-bg: #2980b9;
+            --primary-btn-hover: #3498db;
+            --delete-btn-bg: #c0392b;
+            --delete-btn-hover: #e74c3c;
+            --shadow: rgba(0,0,0,0.5);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        h1 { 
+            margin: 0; 
+            color: var(--header-color); 
+        }
+        
+        .header-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .theme-toggle-btn {
+            position: absolute;
+            right: 0;
+            background: none;
+            border: 1px solid var(--border-color);
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 20px;
+            color: var(--text-color);
+            transition: background-color 0.3s;
+        }
+        .theme-toggle-btn:hover {
+            background-color: var(--border-color);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px var(--shadow);
+            margin-bottom: 20px;
+        }
+        
+        input[type="text"], input[type="datetime-local"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        input[type="datetime-local"] {
+            flex-grow: 0;
+        }
+        
+        button.primary-btn {
+            padding: 10px 20px;
+            background-color: var(--primary-btn-bg);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button.primary-btn:hover { background-color: var(--primary-btn-hover); }
+        
+        ul { list-style: none; padding: 0; }
+        
+        li {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: background 0.2s;
+        }
+        
+        li:first-child { border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        li:last-child { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; border-bottom: none; }
+        
+        li.completed .todo-title {
+            text-decoration: line-through;
+            color: var(--completed-color);
+        }
+        
+        .todo-content { flex-grow: 1; }
+        
+        .todo-title {
+            font-size: 1.1em;
+            font-weight: 500;
+            display: block;
+        }
+        
+        .todo-meta {
+            font-size: 0.85em;
+            color: var(--meta-color);
+            margin-top: 4px;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .delete-btn {
+            background-color: var(--delete-btn-bg);
+            padding: 5px 10px;
+            font-size: 0.9em;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .delete-btn:hover { background-color: var(--delete-btn-hover); }
+
+        .sort-btn {
+            padding: 5px 10px; 
+            font-size: 0.9em;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .sort-btn:hover {
+             background-color: var(--border-color);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1>Todo List</h1>
+        <button id="theme-toggle" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark Mode">🌙</button>
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="new-todo" placeholder="What needs to be done?">
+        <input type="datetime-local" id="new-deadline">
+        <button id="add-btn" class="primary-btn">Add Task</button>
+    </div>
+
+    <div class="sort-controls" style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
+        <span style="font-weight: bold;">Sort by:</span>
+        <button id="sort-deadline-btn" class="sort-btn" onclick="toggleSort('deadline')">Deadline</button>
+        <button id="sort-created-btn" class="sort-btn" onclick="toggleSort('created')">Created</button>
+    </div>
+
+    <ul id="todo-list">
+        <!-- Todos will be inserted here -->
+    </ul>
+
+    <script>
+        const { invoke } = window.__TAURI__.core;
+
+        const todoInput = document.getElementById('new-todo');
+        const deadlineInput = document.getElementById('new-deadline');
+        const addBtn = document.getElementById('add-btn');
+        const todoList = document.getElementById('todo-list');
+        const sortDeadlineBtn = document.getElementById('sort-deadline-btn');
+        const sortCreatedBtn = document.getElementById('sort-created-btn');
+        const themeToggleBtn = document.getElementById('theme-toggle');
+
+        let currentTodos = [];
+        let sortField = 'deadline'; 
+        let sortDirection = 'asc';
+
+        // Theme Logic
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggleBtn.textContent = '☀️';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                themeToggleBtn.textContent = '🌙';
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                themeToggleBtn.textContent = '🌙';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeToggleBtn.textContent = '☀️';
+            }
+        }
+
+        // Init
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            getTodos();
+        });
+
+        addBtn.addEventListener('click', addTodo);
+
+        function toggleSort(field) {
+            if (sortField === field) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortField = field;
+                sortDirection = field === 'deadline' ? 'asc' : 'desc';
+            }
+            updateSortButtons();
+            renderTodos(currentTodos);
+        }
+
+        function updateSortButtons() {
+            sortDeadlineBtn.textContent = 'Deadline';
+            sortCreatedBtn.textContent = 'Created';
+
+            const arrow = sortDirection === 'asc' ? ' ↑' : ' ↓';
+            if (sortField === 'deadline') {
+                sortDeadlineBtn.textContent += arrow;
+                sortDeadlineBtn.style.fontWeight = 'bold';
+                sortCreatedBtn.style.fontWeight = 'normal';
+            } else if (sortField === 'created') {
+                sortCreatedBtn.textContent += arrow;
+                sortCreatedBtn.style.fontWeight = 'bold';
+                sortDeadlineBtn.style.fontWeight = 'normal';
+            }
+        }
+
+        async function getTodos() {
+            try {
+                const todos = await invoke('get_todos');
+                renderTodos(todos);
+            } catch (error) {
+                console.error('Error fetching todos:', error);
+            }
+        }
+
+        async function addTodo() {
+            const title = todoInput.value.trim();
+            if (!title) return;
+
+            const deadline = deadlineInput.value || null;
+
+            try {
+                await invoke('add_todo', { title, deadline });
+                todoInput.value = '';
+                deadlineInput.value = '';
+                getTodos();
+            } catch (error) {
+                console.error('Error adding todo:', error);
+            }
+        }
+
+        async function toggleTodo(id, completed) {
+            try {
+                await invoke('update_todo', { id, completed });
+                getTodos();
+            } catch (error) {
+                console.error('Error toggling todo:', error);
+            }
+        }
+
+        async function deleteTodo(id) {
+            try {
+                await invoke('delete_todo', { id });
+                getTodos();
+            } catch (error) {
+                console.error('Error deleting todo:', error);
+            }
+        }
+        
+        async function updateDeadline(id, newDeadline) {
+             try {
+                await invoke('update_todo', { id, deadline: newDeadline });
+                getTodos();
+            } catch (error) {
+                console.error('Error updating deadline:', error);
+            }
+        }
+
+        function renderTodos(todos) {
+            currentTodos = todos; 
+            todoList.innerHTML = '';
+            updateSortButtons(); 
+            
+            todos.sort((a, b) => {
+                if (a.completed !== b.completed) {
+                    return a.completed ? 1 : -1;
+                }
+
+                let compareResult = 0;
+
+                if (sortField === 'deadline') {
+                    const da = a.deadline ? new Date(a.deadline).getTime() : (sortDirection === 'asc' ? Number.MAX_SAFE_INTEGER : 0);
+                    const db = b.deadline ? new Date(b.deadline).getTime() : (sortDirection === 'asc' ? Number.MAX_SAFE_INTEGER : 0);
+                    compareResult = da - db;
+                } else if (sortField === 'created') {
+                    const ca = new Date(a.created_at).getTime();
+                    const cb = new Date(b.created_at).getTime();
+                    compareResult = ca - cb;
+                }
+
+                return sortDirection === 'asc' ? compareResult : -compareResult;
+            });
+
+            todos.forEach(todo => {
+                const li = document.createElement('li');
+                if (todo.completed) li.classList.add('completed');
+                
+                const createdDate = new Date(todo.created_at).toLocaleString();
+                // Don't format deadline if empty, input date handles it
+                
+                li.innerHTML = `
+                    <input type="checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleTodo(${todo.id}, this.checked)">
+                    
+                    <div class="todo-content">
+                        <span class="todo-title">${escapeHtml(todo.title)}</span>
+                        <div class="todo-meta">
+                            Created: ${createdDate} <br>
+                            Deadline: <input type="datetime-local" 
+                                value="${todo.deadline || ''}" 
+                                onchange="updateDeadline(${todo.id}, this.value)"
+                                style="font-size: 0.8em; padding: 2px;">
+                        </div>
+                    </div>
+                    
+                    <div class="actions">
+                        <button class="delete-btn" onclick="deleteTodo(${todo.id})">Delete</button>
+                    </div>
+                `;
+                todoList.appendChild(li);
+            });
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        window.toggleTodo = toggleTodo;
+        window.deleteTodo = deleteTodo;
+        window.updateDeadline = updateDeadline;
+        window.toggleSort = toggleSort;
+        window.toggleTheme = toggleTheme;
+    </script>
+</body>
+</html>

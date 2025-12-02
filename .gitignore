@@ -1,0 +1,24 @@
+# Rust
+/target
+
+# Tauri build artifacts
+/src-tauri/target
+/tauri-dist
+
+# Database
+/todos.db
+
+# OS generated files
+.DS_Store
+.env
+.env.*
+.tmp
+Thumbs.db
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.bak
+*.swo
+*~
