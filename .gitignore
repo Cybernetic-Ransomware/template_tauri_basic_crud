@@ -4,6 +4,7 @@
 # Tauri build artifacts
 /src-tauri/target
 /tauri-dist
+/gen/
 
 # Database
 /todos.db
