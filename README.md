@@ -1,5 +1,5 @@
 # Tauri Basic Example (Gemini Generated)
----
+
 ![Tauri](https://img.shields.io/badge/Tauri-24C8F3?style=for-the-badge&logo=tauri&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
