@@ -2,6 +2,11 @@
 
 This is a functional Todo List application built with [Tauri v2](https://v2.tauri.app/), Rust, and vanilla JavaScript. It was generated and iteratively improved using the **Gemini CLI agent** to demonstrate the capabilities of AI-assisted software development.
 
+![Tauri](https://img.shields.io/badge/Tauri-24C8F3?style=for-the-badge&logo=tauri&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+
 ## Features
 
 *   **Core Functionality:** Add, edit, toggle completion, and delete tasks.
